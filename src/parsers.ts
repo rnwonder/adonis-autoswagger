@@ -3,19 +3,16 @@ import { isJSONString, getBetweenBrackets } from "./helpers";
 import util from "util";
 import extract from "extract-comments";
 import fs from "fs";
-import {
-  camelCase,
-  isEmpty,
-  isUndefined,
-  max,
-  min,
-  snakeCase,
-  startCase,
-} from "lodash";
+import snakeCase from "lodash/snakeCase";
+import startCase from "lodash/startCase";
+import has from "lodash/has";
+import set from "lodash/set";
+import get from "lodash/get";
+import unset from "lodash/unset";
+
 import ExampleGenerator from "./example";
 import type { options, AdonisRoutes, v6Handler } from "./types";
 import { standardTypes } from "./types";
-import _ from "lodash";
 // @ts-expect-error moduleResolution:nodenext issue 54523
 import { VineValidator } from "@vinejs/vine";
 
@@ -369,7 +366,7 @@ export class CommentParser {
       json.forEach((j) => {
         const value = this.exampleGenerator.parseRef(j);
 
-        if (_.has(value, "content.application/json.schema.$ref")) {
+        if (has(value, "content.application/json.schema.$ref")) {
           oneOf.push({
             $ref: value["content"]["application/json"]["schema"]["$ref"],
           });
@@ -398,10 +395,10 @@ export class CommentParser {
             value = this.exampleGenerator.parseRef(v);
             if (v.includes("[]")) {
               let ref = "";
-              if (_.has(value, "content.application/json.schema.$ref")) {
+              if (has(value, "content.application/json.schema.$ref")) {
                 ref = value["content"]["application/json"]["schema"]["$ref"];
               }
-              if (_.has(value, "content.application/json.schema.items.$ref")) {
+              if (has(value, "content.application/json.schema.items.$ref")) {
                 ref =
                   value["content"]["application/json"]["schema"]["items"][
                     "$ref"
@@ -813,29 +810,29 @@ export class ValidatorParser {
         objField = objField.replaceAll(`.0`, ".items");
       }
       if (err === "TYPE") {
-        _.set(obj["properties"], objField, {
-          ..._.get(obj["properties"], objField),
+        set(obj["properties"], objField, {
+          ...get(obj["properties"], objField),
           type: m["rule"],
           example: this.exampleGenerator.exampleByType(m["rule"]),
         });
         if (m["rule"] === "string") {
-          if (_.get(obj["properties"], objField)["minimum"]) {
-            _.set(obj["properties"], objField, {
-              ..._.get(obj["properties"], objField),
-              minLength: _.get(obj["properties"], objField)["minimum"],
+          if (get(obj["properties"], objField)["minimum"]) {
+            set(obj["properties"], objField, {
+              ...get(obj["properties"], objField),
+              minLength: get(obj["properties"], objField)["minimum"],
             });
-            _.unset(obj["properties"], objField + ".minimum");
+            unset(obj["properties"], objField + ".minimum");
           }
-          if (_.get(obj["properties"], objField)["maximum"]) {
-            _.set(obj["properties"], objField, {
-              ..._.get(obj["properties"], objField),
-              maxLength: _.get(obj["properties"], objField)["maximum"],
+          if (get(obj["properties"], objField)["maximum"]) {
+            set(obj["properties"], objField, {
+              ...get(obj["properties"], objField),
+              maxLength: get(obj["properties"], objField)["maximum"],
             });
-            _.unset(obj["properties"], objField + ".maximum");
+            unset(obj["properties"], objField + ".maximum");
           }
         }
 
-        _.set(
+        set(
           testObj,
           m["field"],
           this.exampleGenerator.exampleByType(m["rule"])
@@ -843,13 +840,13 @@ export class ValidatorParser {
       }
 
       if (err === "FORMAT") {
-        _.set(obj["properties"], objField, {
-          ..._.get(obj["properties"], objField),
+        set(obj["properties"], objField, {
+          ...get(obj["properties"], objField),
           format: m["rule"],
           type: "string",
           example: this.exampleGenerator.exampleByValidatorRule(m["rule"]),
         });
-        _.set(
+        set(
           testObj,
           m["field"],
           this.exampleGenerator.exampleByValidatorRule(m["rule"])

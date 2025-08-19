@@ -3,8 +3,9 @@ import fs from "fs";
 import path from "path";
 import util from "util";
 import HTTPStatusCode from "http-status-code";
-import _ from "lodash";
-import { isEmpty, isUndefined } from "lodash";
+import isEmpty from 'lodash/isEmpty'
+import isUndefined from 'lodash/isUndefined'
+import uniq from 'lodash/uniq'
 import { existsSync } from "fs";
 import { scalarCustomCss } from "./scalarCustomCss";
 import { serializeV6Middleware, serializeV6Handler } from "./adonishelpers";
@@ -504,7 +505,7 @@ export class AutoSwagger {
     }
 
     // filter unused tags
-    const usedTags = _.uniq(
+    const usedTags = uniq(
       Object.entries(paths)
         .map(([p, val]) => Object.entries(val)[0][1].tags)
         .flat()
@@ -598,7 +599,7 @@ export class AutoSwagger {
       if (sourceFile !== "") {
         console.log(
           typeof customAnnotations !== "undefined" &&
-            !_.isEmpty(customAnnotations)
+            !isEmpty(customAnnotations)
             ? `\x1b[32m✓ FOUND for ${action}\x1b[0m`
             : `\x1b[33m✗ MISSING for ${action}\x1b[0m`,
 
