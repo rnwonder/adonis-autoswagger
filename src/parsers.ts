@@ -92,7 +92,8 @@ export class CommentParser {
       if (!responses[key]["description"]) {
         responses[key][
           "description"
-        ] = `Returns **${key}** (${HTTPStatusCode.getMessage(key)}) as **${Object.entries(responses[key]["content"])[0][0]
+        ] = `Returns **${key}** (${HTTPStatusCode.getMessage(key)}) as **${
+          Object.entries(responses[key]["content"])[0][0]
         }**`;
       }
     }
@@ -403,7 +404,7 @@ export class CommentParser {
               if (_.has(value, "content.application/json.schema.items.$ref")) {
                 ref =
                   value["content"]["application/json"]["schema"]["items"][
-                  "$ref"
+                    "$ref"
                   ];
               }
               value = {
@@ -448,7 +449,7 @@ export class CommentParser {
         }
         this.parsedFiles[file] = newdata;
       } catch (e) {
-        console.error("\x1b[31m✗ File not found\x1b[0m", file)
+        console.error("\x1b[31m✗ File not found\x1b[0m", file);
       }
     }
 
@@ -911,23 +912,23 @@ export class ValidatorParser {
         p["type"] === "object"
           ? { type: "object", properties: this.parseSchema(p, refs) }
           : p["type"] === "array"
-            ? {
+          ? {
               type: "array",
               items:
                 p["each"]["type"] === "object"
                   ? {
-                    type: "object",
-                    properties: this.parseSchema(p["each"], refs),
-                  }
+                      type: "object",
+                      properties: this.parseSchema(p["each"], refs),
+                    }
                   : {
-                    type: "number",
-                    example: meta.minimum
-                      ? meta.minimum
-                      : this.exampleGenerator.exampleByType("number"),
-                    ...meta,
-                  },
+                      type: "number",
+                      example: meta.minimum
+                        ? meta.minimum
+                        : this.exampleGenerator.exampleByType("number"),
+                      ...meta,
+                    },
             }
-            : {
+          : {
               type: "number",
               example: meta.minimum
                 ? meta.minimum
@@ -986,41 +987,40 @@ export class InterfaceParser {
   }
 
   getInheritedProperties(baseType: string): any {
-
     if (this.schemas[baseType]?.properties) {
       return {
         properties: this.schemas[baseType].properties,
-        required: this.schemas[baseType].required || []
+        required: this.schemas[baseType].required || [],
       };
     }
 
     const cleanType = baseType
-      .split('/')
+      .split("/")
       .pop()
-      ?.replace('.ts', '')
-      ?.replace(/^[#@]/, '');
+      ?.replace(".ts", "")
+      ?.replace(/^[#@]/, "");
 
     if (!cleanType) return { properties: {}, required: [] };
 
     if (this.schemas[cleanType]?.properties) {
       return {
         properties: this.schemas[cleanType].properties,
-        required: this.schemas[cleanType].required || []
+        required: this.schemas[cleanType].required || [],
       };
     }
 
     const variations = [
       cleanType,
       `#models/${cleanType}`,
-      cleanType.replace(/Model$/, ''),
-      `${cleanType}Model`
+      cleanType.replace(/Model$/, ""),
+      `${cleanType}Model`,
     ];
 
     for (const variation of variations) {
       if (this.schemas[variation]?.properties) {
         return {
           properties: this.schemas[variation].properties,
-          required: this.schemas[variation].required || []
+          required: this.schemas[variation].required || [],
         };
       }
     }
@@ -1038,18 +1038,22 @@ export class InterfaceParser {
     const lines = data.split("\n");
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-      const isDefault = line.startsWith("export default interface")
+      const isDefault = line.startsWith("export default interface");
 
-      if (line.startsWith("interface") || line.startsWith("export interface") || isDefault) {
-        const sp = line.split(/\s+/)
-        const idx = line.endsWith("}") ? sp.length - 1 : sp.length - 2
+      if (
+        line.startsWith("interface") ||
+        line.startsWith("export interface") ||
+        isDefault
+      ) {
+        const sp = line.split(/\s+/);
+        const idx = line.endsWith("}") ? sp.length - 1 : sp.length - 2;
         const name = sp[idx].split(/[{\s]/)[0];
         const extendedTypes = this.parseExtends(line);
         interfaceDefinitions.set(name, {
           extends: extendedTypes,
           properties: {},
           required: [],
-          startLine: i
+          startLine: i,
         });
         currentInterface = name;
         continue;
@@ -1060,17 +1064,22 @@ export class InterfaceParser {
         continue;
       }
 
-      if (currentInterface && line && !line.startsWith("//") && !line.startsWith("/*") && !line.startsWith("*")) {
+      if (
+        currentInterface &&
+        line &&
+        !line.startsWith("//") &&
+        !line.startsWith("/*") &&
+        !line.startsWith("*")
+      ) {
         const def = interfaceDefinitions.get(currentInterface);
         if (def) {
           const previousLine = i > 0 ? lines[i - 1].trim() : "";
           const isRequired = previousLine.includes("@required");
 
-          const [prop, type] = line.split(":").map(s => s.trim());
+          const [prop, type] = line.split(":").map((s) => s.trim());
           if (prop && type) {
             const cleanProp = prop.replace("?", "");
             def.properties[cleanProp] = type.replace(";", "");
-
 
             if (isRequired || !prop.includes("?")) {
               def.required.push(cleanProp);
@@ -1092,7 +1101,7 @@ export class InterfaceParser {
           }
 
           if (baseSchema.required) {
-            baseSchema.required.forEach(field => requiredFields.add(field));
+            baseSchema.required.forEach((field) => requiredFields.add(field));
           }
         }
       }
@@ -1101,7 +1110,7 @@ export class InterfaceParser {
 
       const parsedProperties = {};
       for (const [key, value] of Object.entries(allProperties)) {
-        if (typeof value === 'object' && value !== null && 'type' in value) {
+        if (typeof value === "object" && value !== null && "type" in value) {
           parsedProperties[key] = value;
         } else {
           parsedProperties[key] = this.parseType(value, key);
@@ -1112,7 +1121,9 @@ export class InterfaceParser {
         type: "object",
         properties: parsedProperties,
         required: Array.from(requiredFields),
-        description: `${name}${def.extends.length ? ` extends ${def.extends.join(", ")}` : ""} (Interface)`
+        description: `${name}${
+          def.extends.length ? ` extends ${def.extends.join(", ")}` : ""
+        } (Interface)`,
       };
 
       if (schema.required.length === 0) {
@@ -1131,50 +1142,54 @@ export class InterfaceParser {
 
     return matches[1]
       .split(",")
-      .map(type => type.trim())
-      .map(type => {
-        const cleanType = type.split('/').pop();
-        return cleanType?.replace(/\.ts$/, '') || type;
+      .map((type) => type.trim())
+      .map((type) => {
+        const cleanType = type.split("/").pop();
+        return cleanType?.replace(/\.ts$/, "") || type;
       });
   }
 
   parseType(type: string | any, field: string) {
-    if (typeof type === 'object' && type !== null && 'type' in type) {
+    if (typeof type === "object" && type !== null && "type" in type) {
       return type;
     }
 
     let isArray = false;
-    if (typeof type === 'string' && type.includes("[]")) {
+    if (typeof type === "string" && type.includes("[]")) {
       type = type.replace("[]", "");
       isArray = true;
     }
 
-    if (typeof type === 'string') {
-      type = type.replace(/[;\r\n]/g, '').trim();
+    if (typeof type === "string") {
+      type = type.replace(/[;\r\n]/g, "").trim();
     }
 
     let prop: any = { type: type };
     let notRequired = field.includes("?");
     prop.nullable = notRequired;
 
-    if (typeof type === 'string' && type.toLowerCase() === "datetime") {
+    if (typeof type === "string" && type.toLowerCase() === "datetime") {
       prop.type = "string";
       prop.format = "date-time";
       prop.example = "2021-03-23T16:13:08.489+01:00";
-    } else if (typeof type === 'string' && type.toLowerCase() === "date") {
+    } else if (typeof type === "string" && type.toLowerCase() === "date") {
       prop.type = "string";
       prop.format = "date";
       prop.example = "2021-03-23";
     } else {
       const standardTypes = ["string", "number", "boolean", "integer"];
-      if (typeof type === 'string' && !standardTypes.includes(type.toLowerCase())) {
+      if (
+        typeof type === "string" &&
+        !standardTypes.includes(type.toLowerCase())
+      ) {
         delete prop.type;
         prop.$ref = `#/components/schemas/${type}`;
       } else {
-        if (typeof type === 'string') {
+        if (typeof type === "string") {
           prop.type = type.toLowerCase();
         }
-        prop.example = this.exampleGenerator.exampleByType(type) ||
+        prop.example =
+          this.exampleGenerator.exampleByType(type) ||
           this.exampleGenerator.exampleByField(field);
       }
     }
@@ -1182,7 +1197,7 @@ export class InterfaceParser {
     if (isArray) {
       return {
         type: "array",
-        items: prop
+        items: prop,
       };
     }
 
@@ -1191,12 +1206,14 @@ export class InterfaceParser {
 }
 
 export class EnumParser {
-  constructor() { }
+  constructor() {}
 
   parseEnums(data: string): Record<string, any> {
     const enums: Record<string, any> = {};
     const lines = data.split("\n");
     let currentEnum: string | null = null;
+    let currentUnionType: string | null = null;
+    let unionValues: string[] = [];
     let description: string | null = null;
 
     for (const line of lines) {
@@ -1207,6 +1224,7 @@ export class EnumParser {
         continue;
       }
 
+      // Handle traditional enum declarations
       if (
         trimmedLine.startsWith("enum") ||
         trimmedLine.startsWith("export enum")
@@ -1225,6 +1243,102 @@ export class EnumParser {
         continue;
       }
 
+      // Handle union type declarations - start of multi-line union type
+      if (
+        (trimmedLine.startsWith("type ") ||
+          trimmedLine.startsWith("export type ")) &&
+        trimmedLine.includes("=")
+      ) {
+        // First, finalize any existing union type before starting a new one
+        if (currentUnionType && unionValues.length > 0) {
+          enums[currentUnionType] = {
+            type: "string",
+            enum: unionValues,
+            properties: {},
+            description:
+              description || `${startCase(currentUnionType)} enumeration`,
+          };
+          currentUnionType = null;
+          unionValues = [];
+        }
+
+        const typeMatch = trimmedLine.match(
+          /(?:export\s+)?type\s+(\w+)\s*=\s*(.*)$/
+        );
+        if (typeMatch) {
+          const typeName = typeMatch[1];
+          const typeDefinition = typeMatch[2].trim();
+
+          currentUnionType = typeName;
+          unionValues = [];
+
+          // Check if it's a single-line union type
+          if (typeDefinition.includes("|")) {
+            const values = typeDefinition.split("|").map((val) => val.trim());
+            const stringLiterals = values.filter(
+              (val) =>
+                (val.startsWith('"') && val.endsWith('"')) ||
+                (val.startsWith("'") && val.endsWith("'"))
+            );
+
+            // Accept union types that have at least some string literals (ignore null, undefined, etc.)
+            if (stringLiterals.length > 0) {
+              const enumValues = stringLiterals.map((val) => val.slice(1, -1));
+              enums[typeName] = {
+                type: "string",
+                enum: enumValues,
+                properties: {},
+                description:
+                  description || `${startCase(typeName)} enumeration`,
+              };
+              description = null;
+              currentUnionType = null;
+            }
+          } else if (typeDefinition.startsWith("|")) {
+            // Multi-line union type starting with |
+            const value = typeDefinition.substring(1).trim();
+            if (
+              (value.startsWith('"') && value.endsWith('"')) ||
+              (value.startsWith("'") && value.endsWith("'"))
+            ) {
+              unionValues.push(value.slice(1, -1));
+            }
+          }
+        }
+        continue;
+      }
+
+      // Handle continuation of multi-line union type
+      if (currentUnionType && trimmedLine.startsWith("|")) {
+        const value = trimmedLine.substring(1).trim();
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
+          unionValues.push(value.slice(1, -1));
+        }
+        continue;
+      }
+
+      // Check if we've finished parsing a multi-line union type
+      if (
+        currentUnionType &&
+        unionValues.length > 0 &&
+        !trimmedLine.startsWith("|") &&
+        trimmedLine !== ""
+      ) {
+        enums[currentUnionType] = {
+          type: "string",
+          enum: unionValues,
+          properties: {},
+          description:
+            description || `${startCase(currentUnionType)} enumeration`,
+        };
+        description = null;
+        currentUnionType = null;
+        unionValues = [];
+      }
+
       if (currentEnum && trimmedLine !== "{" && trimmedLine !== "}") {
         const [key, value] = trimmedLine.split("=").map((s) => s.trim());
         if (key) {
@@ -1238,6 +1352,16 @@ export class EnumParser {
       }
     }
 
+    // Handle case where union type ends at end of file
+    if (currentUnionType && unionValues.length > 0) {
+      enums[currentUnionType] = {
+        type: "string",
+        enum: unionValues,
+        properties: {},
+        description:
+          description || `${startCase(currentUnionType)} enumeration`,
+      };
+    }
 
     return enums;
   }
