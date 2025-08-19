@@ -1,5 +1,6 @@
-import { snakeCase } from "lodash";
+import snakeCase from "lodash/snakeCase";
 import { getBetweenBrackets } from "./helpers";
+
 export default class ExampleGenerator {
   public schemas = {};
   constructor(schemas: any) {

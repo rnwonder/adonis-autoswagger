@@ -1,7 +1,9 @@
 /**
  * Check if a string is a valid JSON
  */
-import { camelCase, isEmpty, isUndefined, snakeCase, startCase } from "lodash";
+import camelCase from "lodash/camelCase";
+import startCase from "lodash/startCase";
+
 export function isJSONString(str: string): boolean {
   try {
     JSON.parse(str);
